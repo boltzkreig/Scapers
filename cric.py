@@ -6,13 +6,16 @@
 # 2> Plain output of match selected using argument. Get status by :
 #   send-notify "SCORE" "$(cric.py <num> | awk -f\( '{print $NF }' )"
 # 3> Detailed information of current play as:
-#   cric.py <num> d
+#   cric.py <num> d <loop-time>
 ################################################################################
 
-import sys, requests
+import sys, requests, time, os
 from datetime import datetime as dt
 from colorama import Fore, Style
 from bs4 import BeautifulSoup 
+
+LINE_UP = '\033[1A'
+LINE_CLEAR = '\x1b[2K'
 
 list = []
 url = "https://www.cricbuzz.com"
@@ -51,19 +54,27 @@ else:
     if len(sys.argv) == 2: sys.exit()
     if sys.argv[2] == 'd':
         link = res[ int( sys.argv[1] ) ].find('a').get('href')
-        req = requests.get(url + link)
-        soup = BeautifulSoup(req.content, "html.parser")
-        res = soup.find( 'div', class_ = 'cb-col-67 cb-col')
-        if not hasattr(res, "strings"): print(Fore.RED + "  Nothing to See"); sys.exit(0)
-        list.clear()
-        for string in res.strings:
-            list.append(string)
-        for i in range(0,len(list)//6):
-            print(Fore.MAGENTA, end="") if i%3==0 else { print(Fore.GREEN, end="") if i > 2 else print(Fore.YELLOW, end="")}
-            for j in range(0,6):
-                num = 6*i+j
-                print(f'{list[num][0:20]:>20}', end="\t") if num%6==0 else print(f'{list[num]:5}', end=" ")
-            print("\n") if i%3==2 else print("")
+        try:
+            while 1 :
+                req = requests.get(url + link)
+                soup = BeautifulSoup(req.content, "html.parser")
+                res = soup.find( 'div', class_ = 'cb-col-67 cb-col')
+                if not hasattr(res, "strings"): print(Fore.RED + "  Nothing to See"); sys.exit(0)
+                list.clear()
+                for string in res.strings:
+                    list.append(string)
+                print(Fore.CYAN + "\t\t" + str(dt.now()))
+                for i in range(0,len(list)//6):
+                    print(Fore.MAGENTA, end="") if i%3==0 else { print(Fore.GREEN, end="") if i > 2 else print(Fore.YELLOW, end="")}
+                    for j in range(0,6):
+                        num = 6*i+j
+                        print(f'{list[num][0:20]:>20}', end="\t") if num%6==0 else print(f'{list[num]:5}', end=" ")
+                    print("\n") if i%3==2 else print("")
+                sys.exit(0) if len(sys.argv) == 3 else time.sleep(int(sys.argv[3]))
+                for i in range(-3,len(list)//6):
+                    print(LINE_UP, end=LINE_CLEAR)
+        except KeyboardInterrupt:
+            sys.exit(0)
     else:
         print("Some Error")
 
