@@ -6,7 +6,7 @@
 # 2> Plain output of match selected using argument. Get status by :
 #   send-notify "SCORE" "$(cric.py <num> | awk -f\( '{print $NF }' )"
 # 3> Detailed information of current play as:
-#   cric.py <num> d <loop-time>
+#   cric.py <num> d/s <loop-time>
 ################################################################################
 
 import sys, requests, time, os
@@ -77,13 +77,33 @@ else:
                         num = 6 * i + j
                         print( f"{list[num][0:20]:>20}", end="\t") if num % 6 == 0 else print(f"{list[num]:5}", end=" ")
                     print("\n") if list[((i+1) * 6)%len(list)] == "Batter" or list[ ((i+1) *6)%len(list) ]== "Bowler" else print("")
+                print(soup.find("div", class_="cb-col cb-col-100 cb-comm-rcnt-wrap"))
+                print(soup.find("div", class_="cb-col cb-col-100 cb-font-12 cb-text-gray cb-min-rcnt ng-scope"))
+                print(soup.find("div", class_="cb-col cb-col-33 cb-key-st-lst").text)
+
                 sys.exit(0) if len(sys.argv) == 3 else time.sleep(int(sys.argv[3]))
                 lines = os.get_terminal_size()[0]
                 for i in range(-4-(len(status)//lines), len(list) // 6):
                     print(LINE_UP, end=LINE_CLEAR)
         except KeyboardInterrupt:
             sys.exit(0)
+    if sys.argv[2] == "s":
+        link = res[int(sys.argv[1])].find("a").get("href").split("/")[2]
+        req = requests.get(url + '/api/html/cricket-scorecard/' + link)
+        print(url + '/api/html/cricket-scorecard/' + link)
+        soup = BeautifulSoup(req.content, "html.parser")
+        for jim in soup.find_all('div', class_="cb-col cb-col-100 cb-ltst-wgt-hdr"):
+            try: print(jim.find("div", class_="cb-col cb-col-100 cb-scrd-sub-hdr cb-bg-gray").get_text(), sep='\t')
+            except AttributeError: pass
+            for jam in jim.find_all('div', class_="cb-col cb-col-100 cb-scrd-itms"):
+                list.clear()
+                for jum in jam.find_all('div'):
+                    list.append(jum.text)
+                print(*list, sep='\t', end='\n')
+            print('>>>')
     else:
         print("Some Error")
 
 Style.RESET_ALL
+#/api/html/cricket-scorecard/75602
+#/live-cricket-scores/75602/sl-vs-nz-41st-match-icc-cricket-world-cup-2023
