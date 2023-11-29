@@ -77,9 +77,7 @@ else:
                         num = 6 * i + j
                         print( f"{list[num][0:20]:>20}", end="\t") if num % 6 == 0 else print(f"{list[num]:5}", end=" ")
                     print("\n") if list[((i+1) * 6)%len(list)] == "Batter" or list[ ((i+1) *6)%len(list) ]== "Bowler" else print("")
-                print(soup.find("div", class_="cb-col cb-col-100 cb-comm-rcnt-wrap"))
-                print(soup.find("div", class_="cb-col cb-col-100 cb-font-12 cb-text-gray cb-min-rcnt ng-scope"))
-                print(soup.find("div", class_="cb-col cb-col-33 cb-key-st-lst").text)
+                ##print(Fore.CYAN + soup.find("div", class_="cb-col cb-col-33 cb-key-st-lst").text[11:] + Style.RESET_ALL)
 
                 sys.exit(0) if len(sys.argv) == 3 else time.sleep(int(sys.argv[3]))
                 lines = os.get_terminal_size()[0]
@@ -90,17 +88,33 @@ else:
     if sys.argv[2] == "s":
         link = res[int(sys.argv[1])].find("a").get("href").split("/")[2]
         req = requests.get(url + '/api/html/cricket-scorecard/' + link)
-        print(url + '/api/html/cricket-scorecard/' + link)
+        #print(Fore.GREEN + url + '/api/html/cricket-scorecard/' + link + Style.RESET_ALL)
         soup = BeautifulSoup(req.content, "html.parser")
+        #print(Fore.CYAN + soup.find_all('div', class_=["cb-col cb-scrcrd-status cb-col-100 cb-text-live","cb-col cb-scrcrd-status cb-col-100 cb-text-live"]).text + Style.RESET_ALL)
+        print(Fore.CYAN + soup.find('div').text + Style.RESET_ALL)
         for jim in soup.find_all('div', class_="cb-col cb-col-100 cb-ltst-wgt-hdr"):
-            try: print(jim.find("div", class_="cb-col cb-col-100 cb-scrd-sub-hdr cb-bg-gray").get_text(), sep='\t')
+            try:
+                #for jam in jim.find_all('div', class_=["cb-col cb-col-100 cb-scrd-itms","cb-col cb-col-100 cb-scrd-sub-hdr cb-bg-gray"]):
+                for jam in jim.find_all('div', recursive=False):
+                    list.clear()
+                    for jum in jam.find_all('div'):
+                        list.append(jum.text)
+                    count=0;
+                    for jum in list:
+                        count+=1;
+                        if jum == "Batter":
+                            print(Fore.YELLOW, end="")
+                        elif jum == "Bowler":
+                            print(Fore.GREEN, end="")
+                        if count == 1:
+                            print(f'{jum:^20}', end="\t")
+                        elif count == 2:
+                            print(f'{jum:<25}', end="\t")
+                        else:
+                            print(f'{jum:^6}', end="\t")
+                    print()
+                print('')
             except AttributeError: pass
-            for jam in jim.find_all('div', class_="cb-col cb-col-100 cb-scrd-itms"):
-                list.clear()
-                for jum in jam.find_all('div'):
-                    list.append(jum.text)
-                print(*list, sep='\t', end='\n')
-            print('>>>')
     else:
         print("Some Error")
 
