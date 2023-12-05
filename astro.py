@@ -20,11 +20,10 @@ soup = BeautifulSoup(req.content, "html.parser")
 res = soup.find( 'table' , class_ = 'tb-wc zebra sep fw' )
 
 for ele in res.find_all('tr'):
-    arr = []
-    col = ele.find_all(['td','th'])
-    for par in col:
-        arr.append(par.text)
-    print(*arr , sep='\t', end='\n')
+    for entry in ele.find_all(['td','th']):
+        print(f'{entry.text:^15}', end="")
+    print()
+    #print(*arr , sep='\t', end='\n')
 #print(res.text)
 """
 import pandas
